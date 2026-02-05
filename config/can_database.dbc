@@ -1,0 +1,127 @@
+// Virtual HIL Framework - CAN Database
+// DBC format file defining CAN messages for simulated ECUs
+
+VERSION "1.0.0"
+
+// -----------------------------------------------------------------------------
+// Definition of all nodes (ECUs) on the bus
+// -----------------------------------------------------------------------------
+BO_ "BMS_ECU"      0x100 Virtual  // Battery Management System
+BO_ "BDC_ECU"      0x200 Virtual  // Body Domain Controller (Doors)
+BO_ "TESTER"       0x300 Virtual  // Test/Diagnostic Tool
+BO_ "GATEWAY"      0x400 Virtual  // Central Gateway
+
+// -----------------------------------------------------------------------------
+// BMS Messages (0x100-0x1FF)
+// -----------------------------------------------------------------------------
+
+// BMS Status Message - sent every 100ms
+BO_ 256 BMS_Status: 8 BMS_ECU
+ SG_ BMS_SOC : 0|8@1+ (0.5,0) [0|100] "%" Vector__XXX
+ SG_ BMS_SOH : 8|8@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ BMS_Voltage : 16|16@1+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ BMS_Current : 32|16@1- (0.1,0) [-3276.7|3276.7] "A" Vector__XXX
+ SG_ BMS_Temperature : 48|8@1+ (1,-40) [-40|215] "C" Vector__XXX
+ SG_ BMS_Status : 56|8@1+ (1,0) [0|255] "-" Vector__XXX
+
+// BMS Cell Data Message - sent every 500ms (multiplexed)
+BO_ 257 BMS_Cell_Data: 8 BMS_ECU
+ SG_ Cell_Mux : 0|4@1+ (1,0) [0|15] "-" Vector__XXX
+ SG_ Cell_0_Voltage : 4|12@1+ (0.001,0) [0|4.095] "V" Vector__XXX
+ SG_ Cell_1_Voltage : 16|12@1+ (0.001,0) [0|4.095] "V" Vector__XXX
+ SG_ Cell_2_Voltage : 28|12@1+ (0.001,0) [0|4.095] "V" Vector__XXX
+ SG_ Cell_3_Voltage : 40|12@1+ (0.001,0) [0|4.095] "V" Vector__XXX
+ SG_ Cell_4_Voltage : 52|12@1+ (0.001,0) [0|4.095] "V" Vector__XXX
+
+// BMS Fault Message - sent on fault detection
+BO_ 258 BMS_Fault: 8 BMS_ECU
+ SG_ Fault_Type : 0|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ Fault_Cell_ID : 8|8@1+ (1,0) [0|95] "-" Vector__XXX
+ SG_ Fault_Value : 16|16@1+ (1,0) [0|65535] "-" Vector__XXX
+ SG_ Fault_Status : 32|8@1+ (1,0) [0|255] "-" Vector__XXX
+
+// -----------------------------------------------------------------------------
+// BDC Messages (0x200-0x2FF)
+// -----------------------------------------------------------------------------
+
+// Door Status Message - sent every 100ms
+BO_ 512 BDC_Door_Status: 8 BDC_ECU
+ SG_ FL_Open : 0|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ FR_Open : 1|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ RL_Open : 2|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ RR_Open : 3|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ FL_Locked : 8|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ FR_Locked : 9|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ RL_Locked : 10|1@1+ (1,0) [0|1] "-" Vector__XXX
+ SG_ RR_Locked : 11|1@1+ (1,0) [0|1] "-" Vector__XXX
+
+// Door Position Message - sent every 50ms
+BO_ 513 BDC_Door_Position: 8 BDC_ECU
+ SG_ FL_Position : 0|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ FL_State : 7|3@1+ (1,0) [0|7] "-" Vector__XXX
+ SG_ FR_Position : 10|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ FR_State : 17|3@1+ (1,0) [0|7] "-" Vector__XXX
+ SG_ RL_Position : 20|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ RL_State : 27|3@1+ (1,0) [0|7] "-" Vector__XXX
+ SG_ RR_Position : 30|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ RR_State : 37|3@1+ (1,0) [0|7] "-" Vector__XXX
+
+// Window Position Message - sent every 100ms
+BO_ 514 BDC_Window_Position: 8 BDC_ECU
+ SG_ FL_Window : 0|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ FR_Window : 7|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ RL_Window : 14|7@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ RR_Window : 21|7@1+ (1,0) [0|100] "%" Vector__XXX
+
+// -----------------------------------------------------------------------------
+// Diagnostic Messages (0x400-0x4FF)
+// -----------------------------------------------------------------------------
+
+// UDS Response Message
+BO_ 1024 UDS_Response: 8 BMS_ECU
+ SG_ UDS_SID : 0|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_0 : 8|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_1 : 16|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_2 : 24|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_3 : 32|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_4 : 40|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_5 : 48|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ UDS_Data_6 : 56|8@1+ (1,0) [0|255] "-" Vector__XXX
+
+// -----------------------------------------------------------------------------
+// Value Descriptions
+// -----------------------------------------------------------------------------
+
+VAL_ 484 BMS_Status BMS_State "0" "Normal" "1" "Charging" "2" "Discharging" "3" "Balancing" "4" "Fault";
+VAL_ 484 BMS_Status BMS_Mode "0" "Standby" "1" "Run" "2" "Sleep";
+
+VAL_ 513 BDC_Door_Position Door_State "0" "CLOSED" "1" "OPENING" "2" "OPEN" "3" "CLOSING" "4" "BLOCKED" "5" "FAULT";
+
+VAL_ 258 BMS_Fault Fault_ID "0" "No_Fault" "1" "OVERVOLTAGE" "2" "UNDERVOLTAGE" "3" "OVERTEMP" "4" "UNDERTEMP" "5" "LOW_SOC";
+
+// -----------------------------------------------------------------------------
+// Comments
+// -----------------------------------------------------------------------------
+
+CM_ BO_ 256 "Battery pack status including SOC, SOH, voltage, current, and temperature";
+CM_ BO_ 257 "Individual cell voltage data (multiplexed for 96 cells)";
+CM_ BO_ 258 "BMS fault indication with type and location";
+CM_ BO_ 512 "Door open/closed and lock status for all 4 doors";
+CM_ BO_ 513 "Door position percentage and state for all 4 doors";
+CM_ BO_ 514 "Window position percentage for all 4 doors";
+CM_ BO_ 1024 "UDS diagnostic response message";
+
+// -----------------------------------------------------------------------------
+// Signal Groups
+// -----------------------------------------------------------------------------
+
+SG_MUL_VAL_ 484 BMS_State 1 ;
+SG_MUL_VAL_ 484 BMS_Mode 2 ;
+
+// -----------------------------------------------------------------------------
+// BA_ (Bus attributes) - optional
+// -----------------------------------------------------------------------------
+
+BA_ "Baudrate" BA_ 500000;
+BA_ "BusType" BA_ "CAN";
+BA_ "NodeNames" BA_ "BMS_ECU,BDC_ECU,TESTER,GATEWAY";

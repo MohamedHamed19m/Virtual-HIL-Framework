@@ -1,0 +1,232 @@
+{
+  "diagnostic_database": {
+    "version": "1.0.0",
+    "ecu_name": "Virtual HIL ECU",
+    "protocol": "UDS",
+    "protocol_version": "ISO 14229:2020",
+
+    "sessions": {
+      "default": {
+        "session_id": 0x01,
+        "name": "Default Session",
+        "timeout_seconds": 5.0,
+        "supported_services": [0x10, 0x22, 0x19, 0x3E]
+      },
+      "programming": {
+        "session_id": 0x02,
+        "name": "Programming Session",
+        "timeout_seconds": 300.0,
+        "supported_services": [0x10, 0x22, 0x2E, 0x31, 0x34, 0x35, 0x36, 0x37, 0x3E]
+      },
+      "extended": {
+        "session_id": 0x03,
+        "name": "Extended Diagnostic Session",
+        "timeout_seconds": 10.0,
+        "supported_services": [0x10, 0x22, 0x2E, 0x14, 0x19, 0x27, 0x31, 0x3E, 0x85]
+      },
+      "safety_system": {
+        "session_id": 0x04,
+        "name": "Safety System Diagnostic Session",
+        "timeout_seconds": 10.0,
+        "supported_services": [0x10, 0x22, 0x19, 0x3E]
+      }
+    },
+
+    "data_identifiers": {
+      "vehicle_identification": {
+        "did": 0xF10C,
+        "name": "ECU Serial Number",
+        "data_type": "string",
+        "read_only": true,
+        "default_value": "VIRTECU-001"
+      },
+      "hardware_number": {
+        "did": 0xF187,
+        "name": "Hardware Number",
+        "data_type": "string",
+        "read_only": true,
+        "default_value": "HW-1.0"
+      },
+      "software_version": {
+        "did": 0xF19E,
+        "name": "Software Version",
+        "data_type": "string",
+        "read_only": true,
+        "default_value": "SW-1.0.0"
+      },
+      "supplier_id": {
+        "did": 0xF198,
+        "name": "Supplier ID",
+        "data_type": "string",
+        "read_only": true,
+        "default_value": "Virtual-HIL"
+      },
+      "session_status": {
+        "did": 0xF10B,
+        "name": "Session Status",
+        "data_type": "byte",
+        "read_only": true,
+        "default_value": 0x01
+      }
+    },
+
+    "dtc_definitions": {
+      "battery": {
+        "P0171": {
+          "description": "System Too Lean (Bank 1)",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "P0300": {
+          "description": "Random/Multiple Cylinder Misfire Detected",
+          "severity": "error",
+          "status_byte": 0x02
+        },
+        "BMS_OVERVOLTAGE_ACTIVE": {
+          "description": "Battery Cell Overvoltage Detected",
+          "severity": "critical",
+          "status_byte": 0x01
+        },
+        "BMS_UNDERVOLTAGE_ACTIVE": {
+          "description": "Battery Cell Undervoltage Detected",
+          "severity": "critical",
+          "status_byte": 0x01
+        },
+        "BMS_OVERTEMPERATURE_ACTIVE": {
+          "description": "Battery Overtemperature Detected",
+          "severity": "critical",
+          "status_byte": 0x01
+        },
+        "BMS_UNDERTEMPERATURE_ACTIVE": {
+          "description": "Battery Undertemperature Detected",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "BMS_LOW_SOC": {
+          "description": "Battery State of Charge Low",
+          "severity": "warning",
+          "status_byte": 0x01
+        }
+      },
+      "door": {
+        "BDC_DOOR_0_BLOCKED": {
+          "description": "Front Left Door Blocked",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "BDC_DOOR_1_BLOCKED": {
+          "description": "Front Right Door Blocked",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "BDC_DOOR_2_BLOCKED": {
+          "description": "Rear Left Door Blocked",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "BDC_DOOR_3_BLOCKED": {
+          "description": "Rear Right Door Blocked",
+          "severity": "warning",
+          "status_byte": 0x01
+        },
+        "BDC_DOOR_0_FAULT": {
+          "description": "Front Left Door ECU Fault",
+          "severity": "error",
+          "status_byte": 0x01
+        }
+      },
+      "can": {
+        "CAN_BUS_OFF": {
+          "description": "CAN Bus Off State",
+          "severity": "critical",
+          "status_byte": 0x01
+        },
+        "CAN_ERROR_PASSIVE": {
+          "description": "CAN Error Passive State",
+          "severity": "warning",
+          "status_byte": 0x01
+        }
+      }
+    },
+
+    "routines": {
+      "erase_memory": {
+        "routine_id": 0xFF00,
+        "name": "Erase Memory",
+        "description": "Erase specified memory region"
+      },
+      "check_programming_dependencies": {
+        "routine_id": 0x0201,
+        "name": "Check Programming Dependencies",
+        "description": "Verify conditions for programming session"
+      },
+      "enable_rx_signal": {
+        "routine_id": 0x0202,
+        "name": "Enable RX Signal",
+        "description": "Enable reception of specific CAN signal"
+      },
+      "disable_rx_signal": {
+        "routine_id": 0x0203,
+        "name": "Disable RX Signal",
+        "description": "Disable reception of specific CAN signal"
+      }
+    },
+
+    "security_access": {
+      "levels": [
+        {
+          "level": 1,
+          "name": "Standard Diagnostic Access",
+          "seed_size": 4,
+          "key_algorithm": "XOR",
+          "seed_key": [0x12, 0x34, 0x56, 0x78]
+        },
+        {
+          "level": 2,
+          "name": "Extended Diagnostic Access",
+          "seed_size": 4,
+          "key_algorithm": "XOR",
+          "seed_key": [0xAB, 0xCD, 0xEF, 0x01]
+        },
+        {
+          "level": 3,
+          "name": "Programming Access",
+          "seed_size": 4,
+          "key_algorithm": "XOR",
+          "seed_key": [0x11, 0x22, 0x33, 0x44]
+        },
+        {
+          "level": 4,
+          "name": "Manufacturer Access",
+          "seed_size": 4,
+          "key_algorithm": "XOR",
+          "seed_key": [0xAA, 0xBB, 0xCC, 0xDD]
+        }
+      ]
+    },
+
+    "negative_response_codes": {
+      "0x10": "General Reject",
+      "0x11": "Service Not Supported",
+      "0x12": "Sub-Function Not Supported",
+      "0x13": "Incorrect Message Length or Invalid Format",
+      "0x22": "Conditions Not Correct",
+      "0x24": "Request Sequence Error",
+      "0x25": "No Response From Subnet Component",
+      "0x26": "Failure Prevents Execution of Requested Action",
+      "0x31": "Request Out of Range",
+      "0x33": "Security Access Denied",
+      "0x35": "Invalid Key",
+      "0x36": "Exceed Number of Attempts",
+      "0x37": "Required Time Delay Not Expired",
+      "0x70": "Download Data Error",
+      "0x71": "Upload Download Not Accepted",
+      "0x72": "Transfer Data Suspended",
+      "0x73": "General Programming Failure",
+      "0x74": "Wrong Block Sequence Counter",
+      "0x78": "Request Correctly Received-Response Pending",
+      "0x7E": "Sub-Function Not Supported in Active Session",
+      "0x7F": "Service Not Supported in Active Session"
+    }
+  }
+}

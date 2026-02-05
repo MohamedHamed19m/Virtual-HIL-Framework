@@ -1,0 +1,144 @@
+# Virtual HIL Framework - Docker Compose Configuration
+version: '3.8'
+
+services:
+  # Battery ECU Simulator
+  battery-ecu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-battery-ecu
+    command: python -m ecu_simulation.battery_ecu
+    volumes:
+      - ../config:/app/config:ro
+      - ../logs:/app/logs
+      - ../reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vhil-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Door ECU Simulator
+  door-ecu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-door-ecu
+    command: python -m ecu_simulation.door_ecu
+    volumes:
+      - ../config:/app/config:ro
+      - ../logs:/app/logs
+      - ../reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vhil-network
+    depends_on:
+      - battery-ecu
+    restart: unless-stopped
+
+  # Diagnostic Server
+  diagnostic-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-diag-server
+    command: python -m ecu_simulation.diagnostic_server
+    volumes:
+      - ../config:/app/config:ro
+      - ../logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vhil-network
+    depends_on:
+      - battery-ecu
+      - door-ecu
+    restart: unless-stopped
+
+  # REST API (optional)
+  rest-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-rest-api
+    command: uv run python -c "
+import asyncio
+from ecu_simulation.rest_interface import RESTInterface
+from ecu_simulation.battery_ecu import BatteryECU
+from ecu_simulation.door_ecu import DoorECU
+
+async def main():
+    battery = BatteryECU()
+    door = DoorECU()
+    api = RESTInterface(battery_ecu=battery, door_ecu=door)
+    await api.start()
+    # In production, this would run a web server
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        await api.stop()
+
+asyncio.run(main())
+"
+    volumes:
+      - ../config:/app/config:ro
+      - ../logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vhil-network
+    depends_on:
+      - battery-ecu
+      - door-ecu
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    profiles:
+      - with-api
+
+  # Test Runner
+  test-runner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-test-runner
+    command: uv run robot --pythonpath /app/libraries:/app/ecu_simulation --outputdir /app/reports tests/functional/
+    volumes:
+      - ../config:/app/config:ro
+      - ../tests:/app/tests:ro
+      - ../resources:/app/resources:ro
+      - ../libraries:/app/libraries:ro
+      - ../ecu_simulation:/app/ecu_simulation:ro
+      - ../reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ROBOT_OPTIONS="--loglevel TRACE"
+    networks:
+      - vhil-network
+    depends_on:
+      - battery-ecu
+      - door-ecu
+      - diagnostic-server
+    profiles:
+      - test
+
+networks:
+  vhil-network:
+    driver: bridge
+    name: vhil-network
+
+volumes:
+  logs:
+  reports:

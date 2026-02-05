@@ -1,0 +1,261 @@
+# Virtual HIL Framework - ECU Configuration
+# This file contains configuration parameters for all simulated ECUs
+
+# =============================================================================
+# Battery Management System (BMS) Configuration
+# =============================================================================
+battery_ecu:
+  enabled: true
+  can_id: 0x100
+
+  # Battery pack specifications
+  pack:
+    num_cells: 96
+    cells_in_series: 96
+    cells_in_parallel: 1
+    cell_capacity_ah: 3.2
+    total_capacity_ah: 307.2
+
+  # Voltage limits
+  voltage:
+    nominal_cell_v: 3.7
+    max_cell_v: 4.2
+    min_cell_v: 2.8
+    max_pack_v: 403.2
+    min_pack_v: 268.8
+
+  # Temperature limits (Celsius)
+  temperature:
+    min_operating_c: -10
+    max_operating_c: 45
+    min_cell_c: -20
+    max_cell_c: 60
+    warning_threshold_c: 50
+
+  # Current limits
+  current:
+    max_charge_a: 50.0
+    max_discharge_a: 100.0
+    continuous_charge_a: 20.0
+    continuous_discharge_a: 50.0
+
+  # SOC limits
+  soc:
+    min_percent: 0.0
+    max_percent: 100.0
+    warning_low_percent: 10.0
+    warning_high_percent: 90.0
+
+  # Balancing configuration
+  balancing:
+    enabled: true
+    voltage_threshold_v: 0.01
+    balance_current_ma: 50
+    max_balance_cycles: 10
+
+  # Simulation timing
+  simulation:
+    update_rate_ms: 100
+    response_delay_ms: 10
+
+# =============================================================================
+# Body Domain Controller (BDC) / Door ECU Configuration
+# =============================================================================
+door_ecu:
+  enabled: true
+  can_id: 0x200
+
+  # Door configuration
+  doors:
+    count: 4
+    names:
+      - "Front Left"
+      - "Front Right"
+      - "Rear Left"
+      - "Rear Right"
+
+  # Door timing (seconds)
+  timing:
+    full_open_time_s: 2.0
+    full_close_time_s: 2.5
+    soft_close_time_s: 0.5
+
+  # Window timing (seconds)
+  windows:
+    full_open_time_s: 4.0
+    full_close_time_s: 4.0
+
+  # Pinch protection
+  pinch_protection:
+    enabled: true
+    sensitivity_level: 5  # 1-10
+    reverse_distance_mm: 50
+
+  # Child lock configuration
+  child_lock:
+    available_doors: [2, 3]  # Rear doors only
+
+  # Lock state
+  locks:
+    default_locked: true
+    auto_lock_speed_kph: 15
+    auto_unlock: true
+
+  # Simulation timing
+  simulation:
+    update_rate_ms: 50
+    position_step_percent: 5
+
+# =============================================================================
+# CAN Interface Configuration
+# =============================================================================
+can_interface:
+  enabled: true
+  channel: "virtual0"
+  bitrate: 500000
+  sample_point: 87.5
+
+  # Message timing
+  timing:
+    bms_status_period_ms: 100
+    bms_cell_data_period_ms: 500
+    door_status_period_ms: 100
+    door_position_period_ms: 50
+
+  # CAN IDs
+  message_ids:
+    bms_status: 0x100
+    bms_cell_data: 0x101
+    bms_fault: 0x102
+    bdc_status: 0x200
+    bdc_door_position: 0x201
+    bdc_lock_status: 0x202
+
+  # Logging
+  logging:
+    enabled: true
+    max_log_size: 10000
+    log_file: "logs/can_trace.log"
+
+# =============================================================================
+# Diagnostic Server Configuration
+# =============================================================================
+diagnostic_server:
+  enabled: true
+  protocol: "UDS"
+  version: "ISO 14229:2020"
+
+  # Session configuration
+  sessions:
+    default_session_timeout_s: 5.0
+    extended_session_timeout_s: 10.0
+    programming_session_timeout_s: 300.0
+
+  # Security access
+  security:
+    enabled: true
+    security_levels: 4
+    key_algorithm: "XOR"
+    seed_size_bytes: 4
+
+  # DTC storage
+  dtc:
+    max_stored_dtcs: 100
+    snapshot_enabled: true
+    clear_without_security: false
+
+  # Supported services
+  services:
+    - 0x10  # Diagnostic Session Control
+    - 0x22  # Read Data By Identifier
+    - 0x2E  # Write Data By Identifier
+    - 0x14  # Clear DTC
+    - 0x19  # Read DTC
+    - 0x27  # Security Access
+    - 0x31  # Routine Control
+    - 0x3E  # Tester Present
+    - 0x85  # Control DTC Setting
+
+  # Data Identifiers
+  dids:
+    ecu_serial_number: 0xF10C
+    hardware_number: 0xF187
+    software_version: 0xF19E
+    supplier_id: 0xF198
+    session_status: 0xF10B
+
+# =============================================================================
+# REST API Configuration
+# =============================================================================
+rest_api:
+  enabled: false
+  host: "0.0.0.0"
+  port: 8000
+
+  # API endpoints
+  endpoints:
+    - "/api/battery/status"
+    - "/api/door/status"
+    - "/api/door/control"
+    - "/api/can/send"
+    - "/api/can/statistics"
+    - "/api/diagnostics/session"
+    - "/api/fault/inject"
+    - "/api/health"
+
+  # CORS
+  cors:
+    enabled: true
+    origins: ["*"]
+
+  # Authentication
+  authentication:
+    enabled: false
+    type: "none"  # none, basic, bearer
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/virtual_hil.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+# =============================================================================
+# Test Configuration
+# =============================================================================
+testing:
+  # Default timeouts
+  timeouts:
+    short_s: 5
+    default_s: 10
+    long_s: 30
+    very_long_s: 60
+
+  # Retry settings
+  retry:
+    max_attempts: 3
+    delay_s: 1
+
+  # Fault injection
+  fault_injection:
+    auto_clear: false
+    clear_after_test: true
+
+# =============================================================================
+# Simulation Configuration
+# =============================================================================
+simulation:
+  # Time scale (1.0 = real time, 2.0 = 2x speed)
+  time_scale: 1.0
+
+  # Deterministic mode
+  deterministic: false
+
+  # Random seed (for deterministic mode)
+  random_seed: 12345
+
+  # Performance mode
+  performance_mode: false

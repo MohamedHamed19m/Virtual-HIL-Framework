@@ -1,0 +1,204 @@
+[project]
+name = "virtual-hil-framework"
+version = "0.1.0"
+description = "Virtual Hardware-in-the-Loop Testing Framework for Automotive ECUs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+keywords = ["automotive", "testing", "hil", "ecu", "robot-framework"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "robotframework>=6.0.0",
+    "pyyaml>=6.0",
+    "pyserial>=3.5",
+    "can>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.23.0",
+]
+all = [
+    "virtual-hil-framework[dev,api,docs]",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/Virtual-HIL-Framework"
+Documentation = "https://virtual-hil-framework.readthedocs.io/"
+Repository = "https://github.com/yourusername/Virtual-HIL-Framework.git"
+Issues = "https://github.com/yourusername/Virtual-HIL-Framework/issues"
+
+[project.scripts]
+vhil-start = "scripts.start_ecu_simulator:main"
+vhil-generate-trace = "scripts.generate_can_trace:main"
+vhil-analyze-logs = "scripts.analyze_logs:main"
+vhil-extract-stats = "scripts.extract_stats:main"
+
+# =============================================================================
+# Build System
+# =============================================================================
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ecu_simulation", "libraries"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/ecu_simulation",
+    "/libraries",
+    "/tests",
+    "/resources",
+    "/config",
+    "/scripts",
+    "/docs",
+]
+
+# =============================================================================
+# Ruff Configuration
+# =============================================================================
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "B904",   # raise without from inside except
+    "ARG001", # unused function argument (common in callbacks)
+    "SIM108", # use ternary operator (can reduce readability)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ARG", "S101"]
+"ecu_simulation/**/*.py" = ["ARG001"]
+"libraries/**/*.py" = ["ARG001"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# =============================================================================
+# Pytest Configuration
+# =============================================================================
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--showlocals",
+    "-p", "no:warnings",
+]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# =============================================================================
+# Coverage Configuration
+# =============================================================================
+
+[tool.coverage.run]
+source = ["ecu_simulation", "libraries"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+precision = 2
+
+# =============================================================================
+# Mypy Configuration
+# =============================================================================
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "robot.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "can.*"
+ignore_missing_imports = true
+
+# =============================================================================
+# Robot Framework Configuration
+# =============================================================================
+
+[tool.robot]
+pythonpath = ["./libraries", "./ecu_simulation"]
+outputdir = "./reports"
+variablefile = ["./resources/ecu_variables.robot"]
+loglevel = "TRACE"
