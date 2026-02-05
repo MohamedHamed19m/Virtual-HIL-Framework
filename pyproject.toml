@@ -22,8 +22,6 @@ classifiers = [
 dependencies = [
     "robotframework>=6.0.0",
     "pyyaml>=6.0",
-    "pyserial>=3.5",
-    "can>=4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -192,6 +190,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "can.*"
 ignore_missing_imports = true
+# Note: python-can package imports as 'can'
 
 # =============================================================================
 # Robot Framework Configuration

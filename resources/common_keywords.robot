@@ -55,7 +55,7 @@ Wait For Condition
         Sleep    ${poll_interval}
     END
 
-    [Return]    ${False}
+    RETURN    ${False}
 
 Retry Keyword
     [Documentation]    Retry a keyword up to MAX_RETRIES times
@@ -77,7 +77,7 @@ Safe Run Keyword
     ${status}=    Run Keyword And Return Status    ${keyword}    @{args}
     Log    Keyword '${keyword}' ${status}    console=True
 
-    [Return]    ${status}
+    RETURN    ${status}
 
 Verify Value In Range
     [Documentation]    Verify a value is within specified range
@@ -106,7 +106,7 @@ Get Dictionary Value
     ${has_key}=    Dictionary Should Contain Key    ${dict}    ${key}    limit=False
     ${value}=    Set Variable If    ${has_key}    ${dict}[${key}]    ${default}
 
-    [Return]    ${value}
+    RETURN    ${value}
 
 Compare Dictionaries
     [Documentation]    Compare two dictionaries, ignore keys with None values
@@ -132,7 +132,7 @@ Format CAN ID
     [Arguments]    ${can_id}    ${prefix}=0x
 
     ${hex_id}=    Convert To Hex    ${can_id}    prefix=${prefix}    length=3
-    [Return]    ${hex_id}
+    RETURN    ${hex_id}
 
 Parse CAN Message
     [Documentation]    Parse CAN message data into bytes
@@ -147,7 +147,7 @@ Parse CAN Message
         Append To List    ${bytes}    ${byte}
     END
 
-    [Return]    @{bytes}
+    RETURN    @{bytes}
 
 Log CAN Message
     [Documentation]    Log CAN message details
@@ -161,7 +161,7 @@ Calculate Percentage
     [Arguments]    ${value}    ${total}
 
     ${percentage}=    Evaluate    (${value} / ${total}) * 100 if ${total} != 0 else 0
-    [Return]    ${percentage}
+    RETURN    ${percentage}
 
 Average List
     [Documentation]    Calculate average of list values
@@ -171,35 +171,35 @@ Average List
     ${count}=    Get Length    ${values}
     ${average}=    Evaluate    ${sum} / ${count} if ${count} > 0 else 0
 
-    [Return]    ${average}
+    RETURN    ${average}
 
 Max List
     [Documentation]    Get maximum value from list
     [Arguments]    @{values}
 
     ${max}=    Evaluate    max(${values}) if len(${values}) > 0 else None
-    [Return]    ${max}
+    RETURN    ${max}
 
 Min List
     [Documentation]    Get minimum value from list
     [Arguments]    @{values}
 
     ${min}=    Evaluate    min(${values}) if len(${values}) > 0 else None
-    [Return]    ${min}
+    RETURN    ${min}
 
 Convert Celsius To Fahrenheit
     [Documentation]    Convert temperature from C to F
     [Arguments]    ${celsius}
 
     ${fahrenheit}=    Evaluate    (${celsius} * 9/5) + 32
-    [Return]    ${fahrenheit}
+    RETURN    ${fahrenheit}
 
 Convert Fahrenheit To Celsius
     [Documentation]    Convert temperature from F to C
     [Arguments]    ${fahrenheit}
 
     ${celsius}=    Evaluate    (${fahrenheit} - 32) * 5/9
-    [Return]    ${celsius}
+    RETURN    ${celsius}
 
 Sleep Milliseconds
     [Documentation]    Sleep for specified milliseconds
@@ -213,4 +213,4 @@ Create Timestamp
     [Arguments]    ${format}=%Y%m%d_%H%M%S
 
     ${timestamp}=    Get Current Date    result_format=${format}
-    [Return]    ${timestamp}
+    RETURN    ${timestamp}
