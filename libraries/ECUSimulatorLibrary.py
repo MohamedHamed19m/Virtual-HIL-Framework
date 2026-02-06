@@ -52,6 +52,7 @@ class ECUSimulatorLibrary:
         """
         if self._battery_ecu is None:
             from ecu_simulation.battery_ecu import BatteryECU
+
             self._battery_ecu = BatteryECU()
             logger.info(f"Started battery simulation with {num_cells} cells")
         return "battery_ecu"
@@ -72,6 +73,7 @@ class ECUSimulatorLibrary:
         """
         if self._door_ecu is None:
             from ecu_simulation.door_ecu import DoorECU
+
             self._door_ecu = DoorECU(num_doors=num_doors)
             logger.info(f"Started door simulation with {num_doors} doors")
         return "door_ecu"
@@ -215,14 +217,13 @@ class ECUSimulatorLibrary:
             | Open Door | door_id=0 | target_percentage=100 |
         """
         import asyncio
+
         if self._door_ecu is None:
             raise RuntimeError("Door ECU not started")
 
         # Run async function in event loop
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            self._door_ecu.open_door(door_id, target_percentage)
-        )
+        loop.run_until_complete(self._door_ecu.open_door(door_id, target_percentage))
         logger.info(f"Opened door {door_id} to {target_percentage}%")
 
     @keyword
@@ -237,6 +238,7 @@ class ECUSimulatorLibrary:
             | Close Door | door_id=0 |
         """
         import asyncio
+
         if self._door_ecu is None:
             raise RuntimeError("Door ECU not started")
 
@@ -256,6 +258,7 @@ class ECUSimulatorLibrary:
             | Lock Door | door_id=0 |
         """
         import asyncio
+
         if self._door_ecu is None:
             raise RuntimeError("Door ECU not started")
 
@@ -275,6 +278,7 @@ class ECUSimulatorLibrary:
             | Unlock Door | door_id=0 |
         """
         import asyncio
+
         if self._door_ecu is None:
             raise RuntimeError("Door ECU not started")
 
@@ -322,7 +326,9 @@ class ECUSimulatorLibrary:
         return set(actual_faults) == set(expected_faults)
 
     @keyword
-    def wait_for_door_position(self, door_id: int, expected_position: str, timeout: float = 5.0) -> bool:
+    def wait_for_door_position(
+        self, door_id: int, expected_position: str, timeout: float = 5.0
+    ) -> bool:
         """
         Wait for door to reach expected position
 

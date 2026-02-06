@@ -17,6 +17,7 @@ from typing import List, Dict, Optional
 @dataclass
 class TestResult:
     """Represents a test result"""
+
     name: str
     status: str  # PASS, FAIL, SKIP
     duration: float
@@ -28,6 +29,7 @@ class TestResult:
 @dataclass
 class LogStatistics:
     """Statistics from log analysis"""
+
     total_tests: int = 0
     passed: int = 0
     failed: int = 0
@@ -80,12 +82,7 @@ class LogAnalyzer:
                 message_elem = test.find(".//msg[@level='FAIL']")
                 message = message_elem.text if message_elem is not None else ""
 
-                result = TestResult(
-                    name=name,
-                    status=status,
-                    duration=duration,
-                    message=message
-                )
+                result = TestResult(name=name, status=status, duration=duration, message=message)
 
                 stats.total_tests += 1
                 stats.total_duration += duration
@@ -116,11 +113,7 @@ class LogAnalyzer:
         matches = re.findall(test_pattern, content, re.DOTALL)
 
         for status, name in matches:
-            result = TestResult(
-                name=name.strip(),
-                status=status.upper(),
-                duration=0.0
-            )
+            result = TestResult(name=name.strip(), status=status.upper(), duration=0.0)
 
             stats.total_tests += 1
 
@@ -148,21 +141,21 @@ class LogAnalyzer:
             "total_lines": len(content.splitlines()),
             "errors": [],
             "warnings": [],
-            "exceptions": []
+            "exceptions": [],
         }
 
         # Find errors
-        error_pattern = r'\[(?:ERROR|CRITICAL)\].*?(?:\n|$)'
+        error_pattern = r"\[(?:ERROR|CRITICAL)\].*?(?:\n|$)"
         for match in re.finditer(error_pattern, content):
             analysis["errors"].append(match.group().strip())
 
         # Find warnings
-        warning_pattern = r'\[WARNING\].*?(?:\n|$)'
+        warning_pattern = r"\[WARNING\].*?(?:\n|$)"
         for match in re.finditer(warning_pattern, content):
             analysis["warnings"].append(match.group().strip())
 
         # Find exceptions
-        exception_pattern = r'Traceback.*?(?=\n\n|\Z)'
+        exception_pattern = r"Traceback.*?(?=\n\n|\Z)"
         for match in re.finditer(exception_pattern, content, re.DOTALL):
             analysis["exceptions"].append(match.group().strip())
 
@@ -177,21 +170,19 @@ class LogAnalyzer:
                 "passed": self.stats.passed,
                 "failed": self.stats.failed,
                 "skipped": self.stats.skipped,
-                "pass_rate": self.stats.passed / self.stats.total_tests if self.stats.total_tests > 0 else 0,
-                "total_duration": self.stats.total_duration
+                "pass_rate": self.stats.passed / self.stats.total_tests
+                if self.stats.total_tests > 0
+                else 0,
+                "total_duration": self.stats.total_duration,
             },
             "failures": [
-                {
-                    "name": f.name,
-                    "message": f.message,
-                    "duration": f.duration
-                }
+                {"name": f.name, "message": f.message, "duration": f.duration}
                 for f in self.stats.failures
-            ]
+            ],
         }
 
         if output_file.suffix == ".json":
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
         else:
             # Generate markdown report
@@ -216,42 +207,31 @@ class LogAnalyzer:
             "",
         ]
 
-        if report['failures']:
-            lines.extend([
-                "## Failures",
-                ""
-            ])
-            for failure in report['failures']:
-                lines.extend([
-                    f"### {failure['name']}",
-                    f"- **Duration**: {failure['duration']:.2f}s",
-                    f"- **Message**: {failure['message']}",
-                    ""
-                ])
+        if report["failures"]:
+            lines.extend(["## Failures", ""])
+            for failure in report["failures"]:
+                lines.extend(
+                    [
+                        f"### {failure['name']}",
+                        f"- **Duration**: {failure['duration']:.2f}s",
+                        f"- **Message**: {failure['message']}",
+                        "",
+                    ]
+                )
 
         output_file.write_text("\n".join(lines))
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze Virtual HIL Framework test logs"
+    parser = argparse.ArgumentParser(description="Analyze Virtual HIL Framework test logs")
+    parser.add_argument(
+        "log_file", type=Path, help="Log file to analyze (output.xml, log.html, or app log)"
     )
     parser.add_argument(
-        "log_file",
-        type=Path,
-        help="Log file to analyze (output.xml, log.html, or app log)"
+        "--output", "-o", type=Path, default="test_report.json", help="Output report file"
     )
     parser.add_argument(
-        "--output", "-o",
-        type=Path,
-        default="test_report.json",
-        help="Output report file"
-    )
-    parser.add_argument(
-        "--format", "-f",
-        choices=["json", "markdown"],
-        default="json",
-        help="Report format"
+        "--format", "-f", choices=["json", "markdown"], default="json", help="Report format"
     )
 
     args = parser.parse_args()
@@ -283,7 +263,7 @@ def main():
         print(f"  Total: {analyzer.stats.total_tests}")
         print(f"  Passed: {analyzer.stats.passed}")
         print(f"  Failed: {analyzer.stats.failed}")
-        print(f"  Pass Rate: {analyzer.stats.passed/analyzer.stats.total_tests*100:.1f}%")
+        print(f"  Pass Rate: {analyzer.stats.passed / analyzer.stats.total_tests * 100:.1f}%")
 
 
 if __name__ == "__main__":

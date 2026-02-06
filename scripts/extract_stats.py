@@ -16,6 +16,7 @@ from typing import Dict, List, Any
 @dataclass
 class TestStats:
     """Test execution statistics"""
+
     total: int = 0
     passed: int = 0
     failed: int = 0
@@ -28,6 +29,7 @@ class TestStats:
 @dataclass
 class ECUMetrics:
     """ECU performance metrics"""
+
     name: str
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
@@ -38,6 +40,7 @@ class ECUMetrics:
 @dataclass
 class CANMetrics:
     """CAN bus metrics"""
+
     total_messages: int = 0
     bus_load_percent: float = 0.0
     error_count: int = 0
@@ -88,13 +91,13 @@ class StatsExtractor:
 
         metrics = {
             "total_lines": len(content.splitlines()),
-            "error_count": len(re.findall(r'\[ERROR\]', content)),
-            "warning_count": len(re.findall(r'\[WARNING\]', content)),
-            "exception_count": len(re.findall(r'Traceback', content)),
+            "error_count": len(re.findall(r"\[ERROR\]", content)),
+            "warning_count": len(re.findall(r"\[WARNING\]", content)),
+            "exception_count": len(re.findall(r"Traceback", content)),
         }
 
         # Extract timing information
-        time_pattern = r'executed in ([\d.]+)s'
+        time_pattern = r"executed in ([\d.]+)s"
         times = re.findall(time_pattern, content)
         if times:
             metrics["avg_execution_time"] = sum(float(t) for t in times) / len(times)
@@ -108,20 +111,20 @@ class StatsExtractor:
         metrics = CANMetrics()
 
         # Count CAN messages
-        metrics.total_messages = len(re.findall(r'CAN (?:TX|RX):', content))
+        metrics.total_messages = len(re.findall(r"CAN (?:TX|RX):", content))
 
         # Count TX vs RX
-        metrics.tx_count = len(re.findall(r'CAN TX:', content))
-        metrics.rx_count = len(re.findall(r'CAN RX:', content))
+        metrics.tx_count = len(re.findall(r"CAN TX:", content))
+        metrics.rx_count = len(re.findall(r"CAN RX:", content))
 
         # Find bus load
-        load_pattern = r'bus load: ([\d.]+)'
+        load_pattern = r"bus load: ([\d.]+)"
         loads = re.findall(load_pattern, content)
         if loads:
             metrics.bus_load_percent = float(loads[-1])
 
         # Count errors
-        metrics.error_count = len(re.findall(r'CAN error', content))
+        metrics.error_count = len(re.findall(r"CAN error", content))
 
         return asdict(metrics)
 
@@ -152,40 +155,18 @@ class StatsExtractor:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Extract statistics from test results"
+    parser = argparse.ArgumentParser(description="Extract statistics from test results")
+    parser.add_argument("input_file", type=Path, help="Input file (output.xml, log, or JSON stats)")
+    parser.add_argument("--output", "-o", type=Path, default="stats.json", help="Output JSON file")
+    parser.add_argument(
+        "--type", "-t", choices=["robot", "log", "can"], default="robot", help="Input file type"
+    )
+    parser.add_argument("--compare", "-c", type=Path, help="Baseline file for comparison")
+    parser.add_argument(
+        "--trend", action="store_true", help="Generate trend data from multiple files"
     )
     parser.add_argument(
-        "input_file",
-        type=Path,
-        help="Input file (output.xml, log, or JSON stats)"
-    )
-    parser.add_argument(
-        "--output", "-o",
-        type=Path,
-        default="stats.json",
-        help="Output JSON file"
-    )
-    parser.add_argument(
-        "--type", "-t",
-        choices=["robot", "log", "can"],
-        default="robot",
-        help="Input file type"
-    )
-    parser.add_argument(
-        "--compare", "-c",
-        type=Path,
-        help="Baseline file for comparison"
-    )
-    parser.add_argument(
-        "--trend",
-        action="store_true",
-        help="Generate trend data from multiple files"
-    )
-    parser.add_argument(
-        "--trend-dir",
-        type=Path,
-        help="Directory containing stat files for trend analysis"
+        "--trend-dir", type=Path, help="Directory containing stat files for trend analysis"
     )
 
     args = parser.parse_args()

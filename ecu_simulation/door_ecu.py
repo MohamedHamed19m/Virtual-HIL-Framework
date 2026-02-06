@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class DoorPosition(Enum):
     """Door position states"""
+
     CLOSED = "CLOSED"
     OPENING = "OPENING"
     OPEN = "OPEN"
@@ -21,6 +22,7 @@ class DoorPosition(Enum):
 
 class LockState(Enum):
     """Door lock states"""
+
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
     CHILD_LOCKED = "CHILD_LOCKED"
@@ -29,6 +31,7 @@ class LockState(Enum):
 @dataclass
 class DoorState:
     """State of a single door"""
+
     position: DoorPosition = DoorPosition.CLOSED
     lock_state: LockState = LockState.LOCKED
     open_percentage: float = 0.0

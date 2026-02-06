@@ -107,15 +107,15 @@ class CANLibrary:
 
         # Send message
         loop = asyncio.get_event_loop()
-        success = loop.run_until_complete(
-            self._can_interface.send(can_id, data_bytes, extended)
-        )
+        success = loop.run_until_complete(self._can_interface.send(can_id, data_bytes, extended))
 
         logger.info(f"Sent CAN message: ID=0x{can_id:03X}, Data={data}")
         return success
 
     @keyword
-    def send_bms_status(self, soc: float, voltage: float, current: float, temperature: float) -> bool:
+    def send_bms_status(
+        self, soc: float, voltage: float, current: float, temperature: float
+    ) -> bool:
         """
         Send a BMS status message
 
@@ -135,17 +135,23 @@ class CANLibrary:
             raise RuntimeError("CAN interface not started")
 
         import asyncio
+
         data = self._can_interface.build_bms_status(soc, voltage, current, temperature)
         loop = asyncio.get_event_loop()
-        return loop.run_until_complete(
-            self._can_interface.send(self.BMS_STATUS_ID, data)
-        )
+        return loop.run_until_complete(self._can_interface.send(self.BMS_STATUS_ID, data))
 
     @keyword
-    def send_door_status(self, fl_open: bool = False, fr_open: bool = False,
-                         rl_open: bool = False, rr_open: bool = False,
-                         fl_locked: bool = True, fr_locked: bool = True,
-                         rl_locked: bool = True, rr_locked: bool = True) -> bool:
+    def send_door_status(
+        self,
+        fl_open: bool = False,
+        fr_open: bool = False,
+        rl_open: bool = False,
+        rr_open: bool = False,
+        fl_locked: bool = True,
+        fr_locked: bool = True,
+        rl_locked: bool = True,
+        rr_locked: bool = True,
+    ) -> bool:
         """
         Send a door status message
 
@@ -169,17 +175,20 @@ class CANLibrary:
             raise RuntimeError("CAN interface not started")
 
         import asyncio
+
         doors = {
-            "fl_open": fl_open, "fr_open": fr_open,
-            "rl_open": rl_open, "rr_open": rr_open,
-            "fl_locked": fl_locked, "fr_locked": fr_locked,
-            "rl_locked": rl_locked, "rr_locked": rr_locked,
+            "fl_open": fl_open,
+            "fr_open": fr_open,
+            "rl_open": rl_open,
+            "rr_open": rr_open,
+            "fl_locked": fl_locked,
+            "fr_locked": fr_locked,
+            "rl_locked": rl_locked,
+            "rr_locked": rr_locked,
         }
         data = self._can_interface.build_door_status(doors)
         loop = asyncio.get_event_loop()
-        return loop.run_until_complete(
-            self._can_interface.send(self.BDC_STATUS_ID, data)
-        )
+        return loop.run_until_complete(self._can_interface.send(self.BDC_STATUS_ID, data))
 
     @keyword
     def wait_for_can_message(self, can_id: int, timeout: float = 5.0) -> bool:

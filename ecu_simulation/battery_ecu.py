@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BatteryCell:
     """Represents a single battery cell"""
+
     id: int
     voltage: float = 3.7  # Volts
     temperature: float = 25.0  # Celsius
@@ -21,6 +22,7 @@ class BatteryCell:
 @dataclass
 class BatteryPackState:
     """Current state of the battery pack"""
+
     soc: float = 100.0  # State of Charge (%)
     soh: float = 100.0  # State of Health (%)
     voltage: float = 400.0  # Total pack voltage (V)
@@ -80,7 +82,7 @@ class BatteryECU:
                 id=i,
                 voltage=self.config["nominal_voltage"] + (i % 10) * 0.01,
                 temperature=25.0 + (i % 5),
-                capacity=self.config["cell_capacity"]
+                capacity=self.config["cell_capacity"],
             )
         self._update_pack_state()
 
@@ -160,8 +162,9 @@ class BatteryECU:
         voltage_factor = 1 + (current * 0.001)
         for cell in self.cells.values():
             cell.voltage *= voltage_factor
-            cell.voltage = max(self.config["min_voltage"],
-                             min(self.config["max_voltage"], cell.voltage))
+            cell.voltage = max(
+                self.config["min_voltage"], min(self.config["max_voltage"], cell.voltage)
+            )
 
         self._update_pack_state()
 

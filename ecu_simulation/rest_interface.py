@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class APIResponse:
     """Standard API response wrapper"""
+
     success: bool
     data: Any = None
     error: Optional[str] = None
@@ -272,11 +273,14 @@ class RESTInterface:
 
         try:
             self.battery_ecu.simulate_charge(current, duration)
-            return APIResponse(True, data={
-                "current": current,
-                "duration": duration,
-                "new_soc": self.battery_ecu.get_soc()
-            })
+            return APIResponse(
+                True,
+                data={
+                    "current": current,
+                    "duration": duration,
+                    "new_soc": self.battery_ecu.get_soc(),
+                },
+            )
 
         except Exception as e:
             return APIResponse(False, error=str(e))

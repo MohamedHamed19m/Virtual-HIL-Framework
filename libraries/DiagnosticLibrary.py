@@ -73,6 +73,7 @@ class DiagnosticLibrary:
         self._current_session = self.SESSION_DEFAULT
 
         import asyncio
+
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self._diag_server.start())
 
@@ -87,6 +88,7 @@ class DiagnosticLibrary:
         """
         if self._diag_server:
             import asyncio
+
             loop = asyncio.get_event_loop()
             loop.run_until_complete(self._diag_server.stop())
             self._diag_server = None
@@ -110,11 +112,10 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         request = bytes([self.SID_SESSION_CONTROL, session_type])
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if not response.is_negative:
             self._current_session = session_type
@@ -141,11 +142,10 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         request = bytes([self.SID_READ_DID, (did >> 8) & 0xFF, did & 0xFF])
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if response.is_negative:
             logger.error(f"Failed to read DID 0x{did:04X}: NRC=0x{response.nrc:02X}")
@@ -173,11 +173,10 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         request = bytes([self.SID_WRITE_DID, (did >> 8) & 0xFF, did & 0xFF]) + data
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if response.is_negative:
             logger.error(f"Failed to write DID 0x{did:04X}: NRC=0x{response.nrc:02X}")
@@ -231,8 +230,9 @@ class DiagnosticLibrary:
         if self._diag_server is None:
             raise RuntimeError("Diagnostic session not started")
 
-        return [{"code": dtc.code, "status": dtc.status}
-                for dtc in self._diag_server.get_all_dtcs()]
+        return [
+            {"code": dtc.code, "status": dtc.status} for dtc in self._diag_server.get_all_dtcs()
+        ]
 
     @keyword
     def clear_dtcs(self) -> bool:
@@ -249,11 +249,10 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         request = bytes([self.SID_CLEAR_DTC, 0xFF, 0xFF])  # Clear all
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if response.is_negative:
             logger.error(f"Failed to clear DTCs: NRC=0x{response.nrc:02X}")
@@ -318,12 +317,11 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         sub_function = level * 2 - 1  # Odd for seed request
         request = bytes([self.SID_SECURITY_ACCESS, sub_function])
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if response.is_negative:
             logger.error(f"Security access denied: NRC=0x{response.nrc:02X}")
@@ -350,12 +348,11 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         sub_function = level * 2  # Even for send key
         request = bytes([self.SID_SECURITY_ACCESS, sub_function]) + key
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         if response.is_negative:
             logger.error(f"Security access denied: NRC=0x{response.nrc:02X}")
@@ -365,8 +362,7 @@ class DiagnosticLibrary:
         return True
 
     @keyword
-    def routine_control(self, routine_id: int, control_type: int = 0x01,
-                        data: bytes = b"") -> bool:
+    def routine_control(self, routine_id: int, control_type: int = 0x01, data: bytes = b"") -> bool:
         """
         Execute a diagnostic routine
 
@@ -385,16 +381,20 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
-        request = bytes([
-            self.SID_ROUTINE_CONTROL,
-            control_type,
-            (routine_id >> 8) & 0xFF,
-            routine_id & 0xFF
-        ]) + data
-        loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
+
+        request = (
+            bytes(
+                [
+                    self.SID_ROUTINE_CONTROL,
+                    control_type,
+                    (routine_id >> 8) & 0xFF,
+                    routine_id & 0xFF,
+                ]
+            )
+            + data
         )
+        loop = asyncio.get_event_loop()
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         return not response.is_negative
 
@@ -416,12 +416,11 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         sub_function = 0x80 if suppress_response else 0x00
         request = bytes([self.SID_TESTER_PRESENT, sub_function])
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         return not response.is_negative
 
@@ -443,11 +442,10 @@ class DiagnosticLibrary:
             raise RuntimeError("Diagnostic session not started")
 
         import asyncio
+
         request = bytes([self.SID_DTC_SETTING, 0x01 if enable else 0x00])
         loop = asyncio.get_event_loop()
-        response = loop.run_until_complete(
-            self._diag_server.process_request(request)
-        )
+        response = loop.run_until_complete(self._diag_server.process_request(request))
 
         return not response.is_negative
 

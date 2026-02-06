@@ -2,7 +2,33 @@
 version: '3.8'
 
 services:
-  # Battery ECU Simulator
+  # Battery ECU HTTP Server (REST API)
+  ecu-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-ecu-server
+    command: uv run python -m ecu_simulation.battery_ecu_server
+    volumes:
+      - ../config:/app/config:ro
+      - ../logs:/app/logs
+      - ../reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vhil-network
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "uv", "run", "python", "-c", "import requests; requests.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Battery ECU Simulator (legacy - direct Python module)
   battery-ecu:
     build:
       context: ..
@@ -24,6 +50,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    profiles:
+      - legacy
 
   # Door ECU Simulator
   door-ecu:
@@ -108,7 +136,7 @@ asyncio.run(main())
     profiles:
       - with-api
 
-  # Test Runner
+  # Test Runner (HTTP-based tests)
   test-runner:
     build:
       context: ..
@@ -128,11 +156,35 @@ asyncio.run(main())
     networks:
       - vhil-network
     depends_on:
+      - ecu-server
+    profiles:
+      - test
+
+  # Test Runner (legacy - direct import tests)
+  test-runner-legacy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vhil-test-runner-legacy
+    command: uv run robot --pythonpath /app/libraries:/app/ecu_simulation --outputdir /app/reports tests/functional/
+    volumes:
+      - ../config:/app/config:ro
+      - ../tests:/app/tests:ro
+      - ../resources:/app/resources:ro
+      - ../libraries:/app/libraries:ro
+      - ../ecu_simulation:/app/ecu_simulation:ro
+      - ../reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ROBOT_OPTIONS="--loglevel TRACE"
+    networks:
+      - vhil-network
+    depends_on:
       - battery-ecu
       - door-ecu
       - diagnostic-server
     profiles:
-      - test
+      - legacy-test
 
 networks:
   vhil-network:

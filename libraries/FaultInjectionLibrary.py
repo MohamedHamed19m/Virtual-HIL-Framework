@@ -221,7 +221,7 @@ class FaultInjectionLibrary:
             | Inject CAN Frame Loss | can_id=0x100 | loss_rate=0.5 |
         """
         self._injected_faults.append(("can_frame_loss", (can_id, loss_rate)))
-        logger.warning(f"Injected {loss_rate*100}% frame loss for CAN ID 0x{can_id:03X}")
+        logger.warning(f"Injected {loss_rate * 100}% frame loss for CAN ID 0x{can_id:03X}")
 
     @keyword
     def inject_can_signal_corruption(self, can_id: int, bit_offset: int = 0):
@@ -346,9 +346,18 @@ class FaultInjectionLibrary:
         self._battery_ecu.clear_dtc()
 
         # Clear tracked faults
-        self._injected_faults = [f for f in self._injected_faults if f[0] not in
-                                 ["cell_overvoltage", "cell_undervoltage",
-                                  "cell_overtemperature", "cell_undertemperature", "low_soc"]]
+        self._injected_faults = [
+            f
+            for f in self._injected_faults
+            if f[0]
+            not in [
+                "cell_overvoltage",
+                "cell_undervoltage",
+                "cell_overtemperature",
+                "cell_undertemperature",
+                "low_soc",
+            ]
+        ]
 
         logger.info("Cleared all battery faults")
 
@@ -367,8 +376,9 @@ class FaultInjectionLibrary:
             self._door_ecu.clear_pinch(door_id)
 
         # Clear tracked faults
-        self._injected_faults = [f for f in self._injected_faults if f[0] not in
-                                 ["door_block", "door_ecu_fault"]]
+        self._injected_faults = [
+            f for f in self._injected_faults if f[0] not in ["door_block", "door_ecu_fault"]
+        ]
 
         logger.info("Cleared all door faults")
 

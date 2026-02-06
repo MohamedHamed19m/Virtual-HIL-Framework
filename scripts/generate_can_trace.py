@@ -18,6 +18,7 @@ from typing import List, Optional
 @dataclass
 class CANMessage:
     """Represents a CAN message for tracing"""
+
     timestamp: float
     channel: int
     id: int
@@ -47,8 +48,13 @@ class CANTraceGenerator:
         self.messages.append(msg)
         self.current_time = max(self.current_time, msg.timestamp)
 
-    def generate_bms_status(self, soc: float = 85.5, voltage: float = 400.0,
-                           current: float = 10.0, temperature: float = 25.0) -> CANMessage:
+    def generate_bms_status(
+        self,
+        soc: float = 85.5,
+        voltage: float = 400.0,
+        current: float = 10.0,
+        temperature: float = 25.0,
+    ) -> CANMessage:
         """Generate a BMS status message"""
         data = struct.pack(
             "<BBhhhBB",
@@ -58,7 +64,7 @@ class CANTraceGenerator:
             int(current * 10),  # Current
             int(temperature + 40),  # Temperature
             0,  # Reserved
-            0x00  # Status
+            0x00,  # Status
         )
 
         return CANMessage(
@@ -68,13 +74,20 @@ class CANTraceGenerator:
             dlc=8,
             data=data,
             direction="TX",
-            comment="BMS Status"
+            comment="BMS Status",
         )
 
-    def generate_door_status(self, fl_open: bool = False, fr_open: bool = False,
-                            rl_open: bool = False, rr_open: bool = False,
-                            fl_locked: bool = True, fr_locked: bool = True,
-                            rl_locked: bool = True, rr_locked: bool = True) -> CANMessage:
+    def generate_door_status(
+        self,
+        fl_open: bool = False,
+        fr_open: bool = False,
+        rl_open: bool = False,
+        rr_open: bool = False,
+        fl_locked: bool = True,
+        fr_locked: bool = True,
+        rl_locked: bool = True,
+        rr_locked: bool = True,
+    ) -> CANMessage:
         """Generate a door status message"""
         byte0 = 0
         byte1 = 0
@@ -106,7 +119,7 @@ class CANTraceGenerator:
             dlc=8,
             data=data,
             direction="TX",
-            comment="Door Status"
+            comment="Door Status",
         )
 
     def generate_sequence(self, duration: float = 10.0, frequency: float = 10.0):
@@ -127,12 +140,14 @@ class CANTraceGenerator:
 
     def save_csv(self, filename: Path):
         """Save trace as CSV file"""
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write("timestamp,channel,id,dlc,data,direction,comment\n")
             for msg in self.messages:
                 data_hex = msg.data.hex().upper()
-                f.write(f"{msg.timestamp:.6f},{msg.channel},{msg.id:03X},{msg.dlc},"
-                       f"{data_hex},{msg.direction},{msg.comment}\n")
+                f.write(
+                    f"{msg.timestamp:.6f},{msg.channel},{msg.id:03X},{msg.dlc},"
+                    f"{data_hex},{msg.direction},{msg.comment}\n"
+                )
         print(f"Saved CSV trace to {filename}")
 
     def save_json(self, filename: Path):
@@ -149,19 +164,19 @@ class CANTraceGenerator:
                     "dlc": msg.dlc,
                     "data": msg.data.hex(),
                     "direction": msg.direction,
-                    "comment": msg.comment
+                    "comment": msg.comment,
                 }
                 for msg in self.messages
-            ]
+            ],
         }
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(trace_data, f, indent=2)
         print(f"Saved JSON trace to {filename}")
 
     def save_candump(self, filename: Path):
         """Save trace in candump format"""
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             for msg in self.messages:
                 timestamp_str = f"({msg.timestamp:.6f})"
                 data_hex = " ".join(f"{b:02X}" for b in msg.data)
@@ -172,7 +187,7 @@ class CANTraceGenerator:
         """Save trace as BLF (Binary Log Format) - simplified"""
         # BLF is a complex binary format; this is a placeholder
         print(f"BLF format not fully implemented, saving as JSON instead")
-        self.save_json(filename.with_suffix('.json'))
+        self.save_json(filename.with_suffix(".json"))
 
 
 def main():
@@ -180,40 +195,24 @@ def main():
         description="Generate CAN trace files for Virtual HIL Framework"
     )
     parser.add_argument(
-        "--output", "-o",
-        type=Path,
-        default="can_trace.csv",
-        help="Output file path"
+        "--output", "-o", type=Path, default="can_trace.csv", help="Output file path"
     )
     parser.add_argument(
-        "--format", "-f",
+        "--format",
+        "-f",
         choices=["csv", "json", "candump", "blf"],
         default="csv",
-        help="Output format"
+        help="Output format",
     )
     parser.add_argument(
-        "--duration", "-d",
-        type=float,
-        default=10.0,
-        help="Trace duration in seconds"
+        "--duration", "-d", type=float, default=10.0, help="Trace duration in seconds"
     )
     parser.add_argument(
-        "--frequency", "-F",
-        type=float,
-        default=10.0,
-        help="Message frequency (Hz)"
+        "--frequency", "-F", type=float, default=10.0, help="Message frequency (Hz)"
     )
+    parser.add_argument("--soc", type=float, default=85.5, help="Battery SOC for BMS messages")
     parser.add_argument(
-        "--soc",
-        type=float,
-        default=85.5,
-        help="Battery SOC for BMS messages"
-    )
-    parser.add_argument(
-        "--voltage",
-        type=float,
-        default=400.0,
-        help="Battery voltage for BMS messages"
+        "--voltage", type=float, default=400.0, help="Battery voltage for BMS messages"
     )
 
     args = parser.parse_args()

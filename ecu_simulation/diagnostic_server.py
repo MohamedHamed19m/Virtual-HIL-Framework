@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class SID(Enum):
     """UDS Service IDs"""
+
     DIAGNOSTIC_SESSION_CONTROL = 0x10
     READ_DATA_BY_IDENTIFIER = 0x22
     READ_MEMORY_BY_ADDRESS = 0x23
@@ -33,6 +34,7 @@ class SID(Enum):
 
 class NRC(Enum):
     """Negative Response Codes"""
+
     POSITIVE_RESPONSE = 0x00
     GENERAL_REJECT = 0x10
     SERVICE_NOT_SUPPORTED = 0x11
@@ -48,6 +50,7 @@ class NRC(Enum):
 
 class SessionType(Enum):
     """Diagnostic session types"""
+
     DEFAULT = 0x01
     PROGRAMMING = 0x02
     EXTENDED = 0x03
@@ -57,6 +60,7 @@ class SessionType(Enum):
 @dataclass
 class DTCRecord:
     """Diagnostic Trouble Code record"""
+
     code: str  # e.g., "P0171"
     status: int  # Status byte
     snapshot: Optional[dict] = None
@@ -65,6 +69,7 @@ class DTCRecord:
 @dataclass
 class DiagnosticResponse:
     """Response from diagnostic server"""
+
     sid: int
     data: bytes
     is_negative: bool = False
@@ -153,25 +158,19 @@ class DiagnosticServer:
                     0x7F,
                     bytes([sid, NRC.SERVICE_NOT_SUPPORTED.value]),
                     True,
-                    NRC.SERVICE_NOT_SUPPORTED.value
+                    NRC.SERVICE_NOT_SUPPORTED.value,
                 )
         except Exception as e:
             logger.error(f"Error processing request: {e}")
             return DiagnosticResponse(
-                0x7F,
-                bytes([sid, NRC.GENERAL_REJECT.value]),
-                True,
-                NRC.GENERAL_REJECT.value
+                0x7F, bytes([sid, NRC.GENERAL_REJECT.value]), True, NRC.GENERAL_REJECT.value
             )
 
     async def _handle_session_control(self, request: bytes) -> DiagnosticResponse:
         """Handle diagnostic session control (0x10)"""
         if len(request) < 2:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x10, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x10, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         session_type = request[1]
@@ -183,24 +182,21 @@ class DiagnosticServer:
 
             return DiagnosticResponse(
                 0x50,  # Positive response SID
-                bytes([session_type, 0x00, 0x00])  # Session type + P2 + P2*
+                bytes([session_type, 0x00, 0x00]),  # Session type + P2 + P2*
             )
         except ValueError:
             return DiagnosticResponse(
                 0x7F,
                 bytes([0x10, NRC.SUB_FUNCTION_NOT_SUPPORTED.value]),
                 True,
-                NRC.SUB_FUNCTION_NOT_SUPPORTED.value
+                NRC.SUB_FUNCTION_NOT_SUPPORTED.value,
             )
 
     async def _handle_read_did(self, request: bytes) -> DiagnosticResponse:
         """Handle read data by identifier (0x22)"""
         if len(request) < 3:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x22, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x22, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         # Parse DIDs (2 bytes each)
@@ -218,11 +214,7 @@ class DiagnosticServer:
                 response_data.extend(bytes([did >> 8, did & 0xFF]))
                 response_data.extend(data)
             else:
-                return DiagnosticResponse(
-                    0x62,
-                    bytes([dids[0] >> 8, dids[0] & 0xFF]),
-                    False
-                )
+                return DiagnosticResponse(0x62, bytes([dids[0] >> 8, dids[0] & 0xFF]), False)
 
         return DiagnosticResponse(0x62, bytes(response_data))
 
@@ -230,10 +222,7 @@ class DiagnosticServer:
         """Handle write data by identifier (0x2E)"""
         if len(request) < 3:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x2E, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x2E, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         did = (request[1] << 8) | request[2]
@@ -242,19 +231,13 @@ class DiagnosticServer:
         self.data_identifiers[did] = data
         logger.info(f"Wrote DID 0x{did:04X}: {data.hex()}")
 
-        return DiagnosticResponse(
-            0x6E,
-            bytes([did >> 8, did & 0xFF])
-        )
+        return DiagnosticResponse(0x6E, bytes([did >> 8, did & 0xFF]))
 
-    async def _handle_read_dtc(self, request: bytes) -> Decimal:
+    async def _handle_read_dtc(self, request: bytes) -> DiagnosticResponse:
         """Handle read DTC (0x19)"""
         if len(request) < 2:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x19, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x19, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         sub_function = request[1]
@@ -273,14 +256,14 @@ class DiagnosticServer:
         elif sub_function == 0x0A:  # Read DTC status availability
             return DiagnosticResponse(
                 0x59,
-                bytes([0x0A, 0x00, 0x00, 0xFF])  # All DTCs supported
+                bytes([0x0A, 0x00, 0x00, 0xFF]),  # All DTCs supported
             )
 
         return DiagnosticResponse(
             0x7F,
             bytes([0x19, NRC.SUB_FUNCTION_NOT_SUPPORTED.value]),
             True,
-            NRC.SUB_FUNCTION_NOT_SUPPORTED.value
+            NRC.SUB_FUNCTION_NOT_SUPPORTED.value,
         )
 
     async def _handle_clear_dtc(self, request: bytes) -> DiagnosticResponse:
@@ -290,7 +273,7 @@ class DiagnosticServer:
                 0x7F,
                 bytes([0x14, NRC.CONDITIONS_NOT_CORRECT.value]),
                 True,
-                NRC.CONDITIONS_NOT_CORRECT.value
+                NRC.CONDITIONS_NOT_CORRECT.value,
             )
 
         # Clear all DTCs
@@ -303,10 +286,7 @@ class DiagnosticServer:
         """Handle security access (0x27)"""
         if len(request) < 2:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x27, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x27, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         sub_function = request[1]
@@ -314,25 +294,16 @@ class DiagnosticServer:
         # For simulation, accept any security request
         if sub_function % 2 == 1:  # Request seed
             # Return a dummy seed
-            return DiagnosticResponse(
-                0x67,
-                bytes([sub_function, 0x01, 0x02, 0x03, 0x04])
-            )
+            return DiagnosticResponse(0x67, bytes([sub_function, 0x01, 0x02, 0x03, 0x04]))
         else:  # Send key
             self.security_level = sub_function // 2
-            return DiagnosticResponse(
-                0x67,
-                bytes([sub_function])
-            )
+            return DiagnosticResponse(0x67, bytes([sub_function]))
 
     async def _handle_routine_control(self, request: bytes) -> DiagnosticResponse:
         """Handle routine control (0x31)"""
         if len(request) < 4:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x31, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x31, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         control_type = request[1]
@@ -343,8 +314,7 @@ class DiagnosticServer:
             try:
                 result = await self.routines[routine_id](control_type, request[4:])
                 return DiagnosticResponse(
-                    0x71,
-                    bytes([control_type, routine_id >> 8, routine_id & 0xFF]) + result
+                    0x71, bytes([control_type, routine_id >> 8, routine_id & 0xFF]) + result
                 )
             except Exception as e:
                 logger.error(f"Routine error: {e}")
@@ -352,14 +322,14 @@ class DiagnosticServer:
                     0x7F,
                     bytes([0x31, NRC.CONDITIONS_NOT_CORRECT.value]),
                     True,
-                    NRC.CONDITIONS_NOT_CORRECT.value
+                    NRC.CONDITIONS_NOT_CORRECT.value,
                 )
 
         return DiagnosticResponse(
             0x7F,
             bytes([0x31, NRC.REQUEST_SEQUENCE_ERROR.value]),
             True,
-            NRC.REQUEST_SEQUENCE_ERROR.value
+            NRC.REQUEST_SEQUENCE_ERROR.value,
         )
 
     async def _handle_tester_present(self, request: bytes) -> DiagnosticResponse:
@@ -374,10 +344,7 @@ class DiagnosticServer:
         """Handle control DTC setting (0x85)"""
         if len(request) < 2:
             return DiagnosticResponse(
-                0x7F,
-                bytes([0x85, NRC.INVALID_KEY.value]),
-                True,
-                NRC.INVALID_KEY.value
+                0x7F, bytes([0x85, NRC.INVALID_KEY.value]), True, NRC.INVALID_KEY.value
             )
 
         setting = request[1]
@@ -397,13 +364,13 @@ class DiagnosticServer:
 
         # Convert to UDS encoding
         byte0 = 0
-        if system == 'P':
+        if system == "P":
             byte0 = 0x02
-        elif system == 'B':
+        elif system == "B":
             byte0 = 0x08
-        elif system == 'C':
+        elif system == "C":
             byte0 = 0x01
-        elif system == 'U':
+        elif system == "U":
             byte0 = 0x00
 
         byte1 = int(digits[0], 16) << 4 | int(digits[1], 16)

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CANMessage:
     """Represents a CAN message"""
+
     id: int
     data: bytes
     dlc: int
@@ -116,11 +117,7 @@ class CANInterface:
             return False
 
         message = CANMessage(
-            id=can_id,
-            data=data,
-            dlc=len(data),
-            timestamp=time.time(),
-            extended=extended
+            id=can_id, data=data, dlc=len(data), timestamp=time.time(), extended=extended
         )
 
         self.tx_count += 1
@@ -160,8 +157,9 @@ class CANInterface:
             "status": data[7],  # Status flags
         }
 
-    def build_bms_status(self, soc: float, voltage: float, current: float,
-                         temperature: float) -> bytes:
+    def build_bms_status(
+        self, soc: float, voltage: float, current: float, temperature: float
+    ) -> bytes:
         """Build BMS status message"""
         return struct.pack(
             "<BBhhhBB",
@@ -171,7 +169,7 @@ class CANInterface:
             int(current * 10),  # Current
             int(temperature + 40),  # Temperature
             0,  # Reserved
-            0x00  # Status
+            0x00,  # Status
         )
 
     def parse_door_status(self, data: bytes) -> dict:
