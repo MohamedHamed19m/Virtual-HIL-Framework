@@ -57,6 +57,25 @@ uv run pytest tests/unit/test_battery_ecu.py::test_soc_calculation -v
 
 ### Starting ECU Server
 
+**Method 1: Using vhil-start (Recommended)**
+```bash
+# Start all ECU simulators (Battery ECU Server + Door ECU)
+vhil-start start
+
+# Check status of running simulators
+vhil-start status
+
+# Follow server logs
+vhil-start logs
+
+# Stop all simulators
+vhil-start stop
+
+# Restart all simulators
+vhil-start restart
+```
+
+**Method 2: Direct Python Module**
 ```bash
 # Start FastAPI ECU server (for HTTP-based testing)
 uv run python -m ecu_simulation.battery_ecu_server
@@ -66,6 +85,8 @@ uv run python -m ecu_simulation.battery_ecu_server
 # - http://localhost:8000/health (Health check)
 # - http://localhost:8000/ecu/status (Full ECU status)
 ```
+
+**Note:** `vhil-start` uses `pythonw.exe` on Windows to run simulators in the background without blocking the terminal. Logs are written to `logs/` directory.
 
 ### Docker
 
@@ -157,17 +178,24 @@ libraries/
 ├── CANLibrary.py                 # CAN communication
 ├── DiagnosticLibrary.py          # UDS diagnostics
 └── FaultInjectionLibrary.py      # Fault injection
+
+scripts/
+├── start_ecu_simulator.py        # ECU simulator manager (vhil-start)
+├── generate_can_trace.py         # CAN trace generator (vhil-generate-trace)
+├── analyze_logs.py               # Log analyzer (vhil-analyze-logs)
+└── extract_stats.py              # Statistics extractor (vhil-extract-stats)
 ```
 
 ## Testing Workflow
 
 ### HTTP-Based Testing (Recommended for Integration)
 
-1. **Setup (one-time)**: `uv pip install -e .`
-2. Start ECU server: `uv run python -m ecu_simulation.battery_ecu_server`
-3. In another terminal, run tests: `uv run robot tests/functional/test_battery_http.robot`
+1. **Setup (one-time)**: `uv sync && uv pip install -e .`
+2. Start ECU simulators: `vhil-start start`
+3. Run tests: `uv run robot tests/functional/test_battery_http.robot`
 4. Server runs on `http://localhost:8000`
 5. View results: Open `reports/report.html` in browser
+6. Stop simulators: `vhil-start stop`
 
 ### Direct Import Testing (Unit Tests)
 
@@ -176,15 +204,26 @@ Use `ECUSimulatorLibrary` - tests directly import and instantiate ECU classes:
 uv run robot tests/functional/test_battery_monitoring.robot
 ```
 
+### Console Scripts
+
+The package provides several console scripts (after `uv pip install -e .`):
+
+| Command | Description |
+|---------|-------------|
+| `vhil-start` | Start/stop/restart ECU simulators, check status, follow logs |
+| `vhil-generate-trace` | Generate CAN trace files for testing |
+| `vhil-analyze-logs` | Analyze simulation logs |
+| `vhil-extract-stats` | Extract statistics from test runs |
+
 ### CI/CD Testing
 
 The `.github/workflows/sil-ci.yml` workflow:
 1. Installs package in editable mode: `uv pip install -e .`
-2. Starts ECU server in background
+2. Starts ECU simulators: `vhil-start start`
 3. Runs health check to verify startup
 4. Runs unit tests (pytest)
 5. Runs Robot Framework tests: `uv run robot tests/`
-6. Stops ECU server (always)
+6. Stops ECU simulators: `vhil-stop` (always)
 
 ## Important Implementation Notes
 
@@ -313,3 +352,23 @@ Supported services (ISO 14229):
 - 0x31: Routine Control
 - 0x3E: Tester Present
 - 0x85: Control DTC Setting
+
+## Cross-Platform Considerations
+
+The framework is designed to work on Windows, Linux, and macOS:
+
+### Windows-Specific Behavior
+- Background processes use `pythonw.exe` to avoid console windows
+- Process management uses `DETACHED_PROCESS` flag for proper detachment
+- Console output uses UTF-8 encoding to handle color codes and special characters
+- PID files are stored in `.pids/` directory for process tracking
+
+### Process Management
+The `vhil-start` command handles platform differences:
+- **Windows**: Uses `DETACHED_PROCESS` flag and `pythonw.exe`
+- **Linux/macOS**: Uses `start_new_session=True` for daemon-like behavior
+- Logs are written to `logs/` directory
+- PIDs are tracked in `.pids/` directory
+
+### File Paths
+The framework uses `pathlib.Path` for cross-platform path handling. Avoid using backslashes in string literals.
