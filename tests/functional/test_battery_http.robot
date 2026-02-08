@@ -5,7 +5,7 @@ Documentation     Battery ECU HTTP API functional tests
 
 Resource          ../../resources/common_keywords.robot
 Resource          ../../resources/ecu_variables.robot
-Library           ECUSimulatorHTTPLibrary    http://localhost:8000    verify=False
+Library           libraries.ECUSimulatorHTTPLibrary    http://localhost:8000    verify=False
 Library           Collections
 
 Suite Setup       Start ECU Server

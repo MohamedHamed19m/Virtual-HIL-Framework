@@ -4,6 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
+### Initial Setup
+```bash
+# Install dependencies
+uv sync
+
+# Install package in editable mode (REQUIRED for Robot Framework tests)
+uv pip install -e .
+```
+
 ### Package Management (uv)
 ```bash
 uv sync                    # Install dependencies
@@ -13,18 +22,33 @@ uv run <command>          # Run command in virtual environment
 
 ### Running Tests
 
+**IMPORTANT: First-time setup required**
 ```bash
-# Run all Robot Framework tests
-uv run robot --pythonpath ./libraries:./ecu_simulation --outputdir reports tests/
+# Install the package in editable mode (one-time setup)
+uv pip install -e .
+```
+
+**Robot Framework Tests:**
+```bash
+# Run all Robot Framework tests (pythonpath is configured in pyproject.toml)
+uv run robot tests/
 
 # Run specific test file
-uv run robot --pythonpath ./libraries:./ecu_simulation --outputdir reports tests/functional/test_battery_monitoring.robot
+uv run robot tests/functional/test_battery_monitoring.robot
 
 # Run tests by tag
-uv run robot --pythonpath ./libraries:./ecu_simulation --outputdir reports --include smoke tests/
-uv run robot --pythonpath ./libraries:./ecu_simulation --outputdir reports --exclude slow tests/
+uv run robot --include smoke tests/
+uv run robot --exclude slow tests/
 
-# Run unit tests (pytest)
+# View test results (opens in browser)
+# Reports are generated in reports/ directory:
+# - report.html  (summary)
+# - log.html     (detailed execution log)
+```
+
+**Unit Tests (pytest):**
+```bash
+# Run all unit tests
 uv run pytest tests/ -v
 
 # Run single unit test
@@ -52,7 +76,7 @@ docker-compose up -d
 # Start with specific profile
 docker-compose --profile test up -d
 
-# Run tests
+# Run tests (Docker uses --pythonpath internally)
 docker-compose --profile test run --rm test-runner
 
 # View logs
@@ -139,22 +163,28 @@ libraries/
 
 ### HTTP-Based Testing (Recommended for Integration)
 
-1. Start ECU server: `uv run python -m ecu_simulation.battery_ecu_server`
-2. In another terminal, run tests: `uv run robot tests/functional/test_battery_http.robot`
-3. Server runs on `http://localhost:8000`
+1. **Setup (one-time)**: `uv pip install -e .`
+2. Start ECU server: `uv run python -m ecu_simulation.battery_ecu_server`
+3. In another terminal, run tests: `uv run robot tests/functional/test_battery_http.robot`
+4. Server runs on `http://localhost:8000`
+5. View results: Open `reports/report.html` in browser
 
 ### Direct Import Testing (Unit Tests)
 
-Use `ECUSimulatorLibrary` - tests directly import and instantiate ECU classes
+Use `ECUSimulatorLibrary` - tests directly import and instantiate ECU classes:
+```bash
+uv run robot tests/functional/test_battery_monitoring.robot
+```
 
 ### CI/CD Testing
 
 The `.github/workflows/sil-ci.yml` workflow:
-1. Starts ECU server in background
-2. Runs health check to verify startup
-3. Runs unit tests (pytest)
-4. Runs Robot Framework tests
-5. Stops ECU server (always)
+1. Installs package in editable mode: `uv pip install -e .`
+2. Starts ECU server in background
+3. Runs health check to verify startup
+4. Runs unit tests (pytest)
+5. Runs Robot Framework tests: `uv run robot tests/`
+6. Stops ECU server (always)
 
 ## Important Implementation Notes
 
@@ -182,7 +212,20 @@ Faults are detected dynamically via `check_faults()`:
 
 ### Configuration
 
+**ECU Configuration:**
 ECU behavior is configurable via `config/ecu_config.yaml` (optional). Default values are hardcoded if config is missing.
+
+**Robot Framework Configuration:**
+The `[tool.robot]` section in `pyproject.toml` sets default options:
+```toml
+[tool.robot]
+pythonpath = ["./libraries", "./ecu_simulation"]
+outputdir = "./reports"
+variablefile = ["./resources/ecu_variables.robot"]
+loglevel = "TRACE"
+```
+
+This allows running `uv run robot tests/` without specifying `--pythonpath` and `--outputdir` every time.
 
 ## Robot Framework Patterns
 
@@ -193,7 +236,8 @@ ECU behavior is configurable via `config/ecu_config.yaml` (optional). Default va
 Documentation     Test description
 Resource          ../../resources/common_keywords.robot
 Resource          ../../resources/ecu_variables.robot
-Library           ECUSimulatorHTTPLibrary    http://localhost:8000
+Library           libraries.ECUSimulatorHTTPLibrary    http://localhost:8000
+Library           Collections
 
 Suite Setup       Start ECU Server
 Suite Teardown    Stop ECU Server
@@ -208,6 +252,13 @@ Test Name
 Custom Keyword
     # Implementation
 ```
+
+**IMPORTANT: Library Import Format**
+- ✅ **CORRECT**: `Library    libraries.ECUSimulatorHTTPLibrary`
+- ✅ **CORRECT**: `Library    libraries.ECUSimulatorLibrary`
+- ❌ **WRONG**: `Library    ECUSimulatorHTTPLibrary`
+
+The `libraries.` prefix is required because the libraries are in the `libraries/` package, and the package must be installed in editable mode (`uv pip install -e .`) for imports to work correctly.
 
 ### Common Test Tags
 

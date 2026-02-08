@@ -5,7 +5,7 @@ Documentation     Battery monitoring functional tests
 
 Resource          ../../resources/common_keywords.robot
 Resource          ../../resources/ecu_variables.robot
-Library           ECUSimulatorLibrary
+Library           libraries.ECUSimulatorLibrary
 Library           Collections
 
 Suite Setup       Start Battery Simulation

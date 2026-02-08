@@ -4,8 +4,8 @@ Documentation     Thermal management functional tests
 
 Resource          ../../resources/common_keywords.robot
 Resource          ../../resources/ecu_variables.robot
-Library           ECUSimulatorLibrary
-Library           FaultInjectionLibrary
+Library           libraries.ECUSimulatorLibrary
+Library           libraries.FaultInjectionLibrary
 Library           Collections
 
 Suite Setup       Start Battery Simulation
@@ -211,14 +211,14 @@ Get Battery Faults
     # This would need to be implemented in ECUSimulatorLibrary
     # For now, return empty list
     @{empty}=    Create List
-    [Return]    ${empty}
+    Return    ${empty}
 
 Get Battery ECU Instance
     [Documentation]    Get the battery ECU instance for fault injection
     # In real implementation, this would return the actual ECU instance
     # For simulation, return mock object
     ${battery}=    Evaluate    None
-    [Return]    ${battery}
+    Return    ${battery}
 
 Set Cell Temperature
     [Documentation]    Set a specific cell temperature (for fault injection)
