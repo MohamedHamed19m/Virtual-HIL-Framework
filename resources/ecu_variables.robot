@@ -35,7 +35,7 @@ ${WARNING_SOC_HIGH}      90.0   # %
 
 # Current limits
 ${MAX_CHARGE_CURRENT}    50.0   # A
-${MAX_DISCHARGE_CURRENT} -100.0 # A
+${MAX_DISCHARGE_CURRENT}    -100.0 # A
 
 # =============================================================================
 # Door ECU Configuration
@@ -75,7 +75,7 @@ ${CAN_BMS_CELL_DATA_ID}  0x101
 ${CAN_BMS_FAULT_ID}      0x102
 ${CAN_BDC_STATUS_ID}     0x200
 ${CAN_BDC_DOOR_POS_ID}   0x201
-${CAN_BDC_LOCK_STATUS_ID} 0x202
+${CAN_BDC_LOCK_STATUS_ID}    0x202
 
 # CAN bus settings
 ${CAN_CHANNEL}           virtual0
@@ -110,10 +110,10 @@ ${DID_SUPPLIER}          0xF198
 
 # DTC masks
 ${DTC_STATUS_MASK_ALL}   0xFF
-${DTC_STATUS_MASK_TEST_FAILED} 0x01
-${DTC_STATUS_MASK_TEST_FAILED_THIS_OPERATION_CYCLE} 0x02
-${DTC_STATUS_MASK_PENDING} 0x04
-${DTC_STATUS_MASK_CONFIRMED} 0x08
+${DTC_STATUS_MASK_TEST_FAILED}     0x01
+${DTC_STATUS_MASK_TEST_FAILED_THIS_OPERATION_CYCLE}     0x02
+${DTC_STATUS_MASK_PENDING}     0x04
+${DTC_STATUS_MASK_CONFIRMED}     0x08
 
 # =============================================================================
 # Fault Injection Configuration
@@ -122,16 +122,16 @@ ${DTC_STATUS_MASK_CONFIRMED} 0x08
 # Fault types
 ${FAULT_OVERVOLTAGE}     OVERVOLTAGE
 ${FAULT_UNDERVOLTAGE}    UNDERVOLTAGE
-${FAULT_OVERTEMPERATURE} OVERTEMPERATURE
-${FAULT_UNDERTEMPERATURE} UNDERTEMPERATURE
+${FAULT_OVERTEMPERATURE}     OVERTEMPERATURE
+${FAULT_UNDERTEMPERATURE}     UNDERTEMPERATURE
 ${FAULT_LOW_SOC}         LOW_SOC
 ${FAULT_DOOR_BLOCK}      DOOR_BLOCK
 ${FAULT_DOOR_ECU}        DOOR_ECU_FAULT
 ${FAULT_CAN_BUS_OFF}     CAN_BUS_OFF
 
 # Fault injection delays
-${FAULT_DETECTION_DELAY} 0.5    # s
-${FAULT_CLEARANCE_DELAY} 1.0    # s
+${FAULT_DETECTION_DELAY}     0.5    # s
+${FAULT_CLEARANCE_DELAY}     1.0    # s
 
 # =============================================================================
 # Test Timing Configuration
@@ -184,7 +184,7 @@ ${ACCEPTABLE_SPREAD}     0.3    # V (normal operation)
 # Maximum response times
 ${MAX_RESPONSE_TIME}     100    # ms for state query
 ${MAX_CAN_TX_TIME}       10     # ms
-${MAX_DIAG_RESPONSE_TIME} 500   # ms
+${MAX_DIAG_RESPONSE_TIME}     500   # ms
 
 # Minimum throughput
 ${MIN_MSG_PER_SECOND}    100    # CAN messages

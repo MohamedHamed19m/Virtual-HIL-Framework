@@ -489,7 +489,7 @@ class ECUSimulatorHTTPLibrary:
     @keyword
     def wait_for_ecu_ready(self, timeout: float = 30.0, interval: float = 0.5) -> bool:
         """
-        Wait for ECU server to be ready and healthy
+        Wait for ECU server to be ready (accepts both 'healthy' and 'stopped' states)
 
         Arguments:
             timeout: Maximum time to wait in seconds
@@ -508,12 +508,16 @@ class ECUSimulatorHTTPLibrary:
 
         while time.time() < end_time:
             try:
-                status = self.check_ecu_health()
-                if status == "healthy":
-                    logger.info("ECU is ready and healthy")
+                result = self._get("/health", "ECU health check failed")
+                status = result.get("status", "unknown")
+                logger.info(f"Health check result: {result}, status={status}")
+                # Accept both 'healthy' and 'stopped' as valid states
+                # The ECU can be started later via Start ECU
+                if status in ("healthy", "stopped"):
+                    logger.info(f"ECU server is ready (status: {status})")
                     return True
-            except Exception:
-                pass  # ECU not ready yet
+            except Exception as e:
+                logger.debug(f"Health check failed: {e}")
 
             time.sleep(interval)
 

@@ -101,7 +101,7 @@ Verify List Contains
 
 Get Dictionary Value
     [Documentation]    Get value from dictionary with default
-    [Arguments]    &{dict}    ${key}    ${default}=${None}
+    [Arguments]    ${dict}    ${key}    ${default}=${None}
 
     ${has_key}=    Dictionary Should Contain Key    ${dict}    ${key}    limit=False
     ${value}=    Set Variable If    ${has_key}    ${dict}[${key}]    ${default}
@@ -110,7 +110,7 @@ Get Dictionary Value
 
 Compare Dictionaries
     [Documentation]    Compare two dictionaries, ignore keys with None values
-    [Arguments]    &{dict1}    &{dict2}
+    [Arguments]    ${dict1}    ${dict2}
 
     ${keys1}=    Get Dictionary Keys    ${dict1}
     ${keys2}=    Get Dictionary Keys    ${dict2}
