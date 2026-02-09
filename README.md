@@ -9,6 +9,8 @@
 
 A portfolio project demonstrating modern automotive test automation using Robot Framework with UV package management and REST API-based Virtual ECU simulation to replicate Hardware-in-the-Loop (HIL) testing workflows.
 
+![Virtual HIL Framework Architecture](docs/images/repo_desc.png)
+
 ## Features
 
 - **ECU Simulation**: Battery Management System (BMS), Body Domain Controller (BDC/Door)
