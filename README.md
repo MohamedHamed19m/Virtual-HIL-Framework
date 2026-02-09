@@ -1,6 +1,13 @@
 # Virtual HIL Framework
 
-A comprehensive Hardware-in-the-Loop (HIL) testing framework for automotive Electronic Control Units (ECUs). This framework enables Software-in-the-Loop (SIL) testing with realistic ECU simulation, CAN communication, and UDS diagnostics.
+![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)
+![Robot Framework](https://img.shields.io/badge/Robot_Framework-6.0+-darkgreen?logo=robotframework&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-teal?logo=fastapi&logoColor=white)
+![UV](https://img.shields.io/badge/UV-Package_Manager-yellow?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+![CI](https://img.shields.io/badge/CI-GitHub_Actions-blue?logo=githubactions&logoColor=white)
+
+A portfolio project demonstrating modern automotive test automation using Robot Framework with UV package management and REST API-based Virtual ECU simulation to replicate Hardware-in-the-Loop (HIL) testing workflows.
 
 ## Features
 
